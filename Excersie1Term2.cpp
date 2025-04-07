@@ -3,6 +3,8 @@ using namespace std;
 //Wazingwa's Teller Machine
 
 // Stuct holding produxt information
+
+// MAIN FUNCTION IMPORT OUTUT CALLING A DUNCTION
 struct Products{
     int serialNumber;
     string name;
@@ -78,7 +80,7 @@ int main (){
 
     cout << "--------------------------------------------" << endl;
     cout << "You have selected the following products: " << endl;
-    cout << " # " << "NAME" << "\t\t" << "QUANTITY" << "\t\t" << "UNIT PRICE" << "\t\t" << "TOTAL" << endl;
+    cout << " # " << "  NAME" << "\t\t" << "QUANTITY" << "\t\t" << "UNIT PRICE" << "\t\t" << "TOTAL" << endl;
     cout << "...................................................................................." << endl;
     
     double grandTotal = 0;
@@ -99,3 +101,5 @@ int main (){
     
     return 0;
 }
+//implenting th code to esure that all clases and dunction
+// Are included in the systen
