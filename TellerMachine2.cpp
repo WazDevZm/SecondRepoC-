@@ -15,13 +15,13 @@ public:
         price = pr;
     }
 
-    // 📦 Display product details
+    // Display product details
     void display() const {
         cout << serialNumber << ". " << name << " - K" << price << endl;
     }
 };
 
-// 🏪 TellerMachine class to manage the shopping process
+//TellerMachine class to manage the shopping process
 class TellerMachine {
 private:
     Product products[20];        // All available products
@@ -30,7 +30,7 @@ private:
     int count;                   // Number of selected products
 
 public:
-    // 🚀 Constructor to initialize products
+    // Constructor to initialize products
     TellerMachine() {
         products[0] = Product(1, "Water", 1.50);
         products[1] = Product(2, "Soda", 2.00);
@@ -55,7 +55,7 @@ public:
         count = 0;
     }
 
-    // 🖨️ Display available products
+    // Display available products
     void displayProducts() const {
         cout << "List of available products:\n\n";
         for (int i = 0; i < 20; i++) {
@@ -64,7 +64,7 @@ public:
         cout << "--------------------------------------------" << endl;
     }
 
-    // 🧾 Select products based on user input
+    //  Select products based on user input
     void selectProducts() {
         int serialNumber, quantity;
         while (count < 5) {
@@ -85,22 +85,23 @@ public:
             }
 
             if (!found) {
-                cout << "❌ Invalid serial number, please try again.\n";
+                cout << "Invalid serial number, please try again.\n";
             }
         }
     }
 
-    // 🧮 Display receipt and calculate total
+    // Display receipt and calculate total
     void printReceipt() const {
         double grandTotal = 0;
 
         cout << "\n--------------------------------------------\n";
         cout << "You have selected the following products:\n";
         cout << left<< "#" 
-             << "NAME" 
-             << "QUANTITY" 
-             << "UNIT PRICE" 
-             << "TOTAL" << endl;
+
+        <<" "<< "NAME" 
+        <<" "<< "QUANTITY" 
+        <<" "<< "UNIT PRICE" 
+        <<" "<< "TOTAL" << endl;
         cout << "................................................................\n";
 
         for (int i = 0; i < 5; i++) {
@@ -119,9 +120,10 @@ public:
     }
 };
 
-// 🔄 Main function to run the Teller Machine
+// Main function to run the Teller Machine
 int main() {
     cout << "👋 Hello! Welcome to TellZed\n\n";
+    cout<<"\n\n\n"<<endl;
 
     TellerMachine machine;
     machine.displayProducts();
