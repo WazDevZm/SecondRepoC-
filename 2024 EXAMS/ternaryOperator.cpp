@@ -12,4 +12,4 @@ int main(){
     int max = (a > b) ? a : b; // if a is greater than b, assign a to max, otherwise assign b to max
     cout<<"The maximum number is: "<<max<<endl;
     return 0;
-}
+}//
