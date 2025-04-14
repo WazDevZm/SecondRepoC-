@@ -35,8 +35,8 @@ public:
 
     void display() const {
         cout << "Title: " << title << ", Author: " << author
-             << ", ISBN: " << ISBN << ", Price: $" << price << endl;
-    }
+             << ", ISBN: " << ISBN << ", Price: ZMK" << price << endl;
+    };
 
     string getTitle() const { return title; }
     string getAuthor() const { return author; }
