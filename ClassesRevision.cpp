@@ -22,7 +22,7 @@ class Employee {
 // Private - Accessible only from within the class
 // Protected - Accessible only from within the class and by derived classes
 int main(){
-    Employee Employee1;
+    Employee Employee1 = Employee("Wazingwa");
     Employee1.Name = "Wazingwa";
     Employee1.Company = "TellZed";
     Employee1.Age = 23;
