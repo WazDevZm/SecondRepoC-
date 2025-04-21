@@ -11,6 +11,8 @@ class Employee {
     void IntroduceYourself(){
         cout<<"Hello, my name is "<<Name<<endl;
         cout<<"I work at "<<Company<<endl;
+    }
+    Employee (string)
     //all members of the class are private by default as you deal with the class
 };
 
@@ -24,6 +26,7 @@ int main(){
     Employee1.Name = "Wazingwa";
     Employee1.Company = "TellZed";
     Employee1.Age = 23;
+    Employee1.IntroduceYourself();
 
 
 
