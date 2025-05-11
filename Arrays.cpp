@@ -44,10 +44,23 @@ int main(){
     int Array5[8] = {1, 2, 3, 4, 5, 6, 7, 8};
     int largest = Array5[0];
 
-    for (int x : Array5) {
+    for (int x : Array5) {// law of opposites
         if (x > largest) {
             largest = x;
         }
     }
     return 9;
+    // detrming the lowest number in array
+    int Array6[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+    int lowest = Array6[0];
+
+    for (int c: Array6) {
+        if (lowest > c) {
+            lowest = c;
+
+        }
+    }
+    // Get back and finish MultiDimensional Arrays
+
+    return 0;
 }
