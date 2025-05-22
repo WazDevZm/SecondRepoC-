@@ -11,6 +11,7 @@ class Employee {
     void setSalary(int s) {
       salary = s;
     }
+    // we impemnent encaspiltion as a way og hding how our code
     // Getter
     int getSalary() {
       return salary;
@@ -26,6 +27,7 @@ int main() {
 
 /*
 CODE EXPLAINED
+the basic fundamantals og DSA are: encapsulation, polumorhsism and
 The salary attribute is private, which have restricted access.
 
 The public setSalary() method takes a parameter (s) and assigns it to the salary attribute (salary = s).
