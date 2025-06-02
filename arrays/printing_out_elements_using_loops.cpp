@@ -29,6 +29,15 @@ int main (){
         a++;
      } while (a < SIZE);
     cout << endl;
-
+// Range baes for loop
+     for (int element: arr){
+        cout<<element<<" "<<endl;
+     }
+     // tst code
+     cout<<"This is test code"<<endl;
+     int at = 5;
+     int* p = &at;
+     cout<< p <<endl;
     return 0;
+    // exporting some of te code in here for control as we review all thw code aasigined saving all the playlists
 }
