@@ -27,18 +27,6 @@ int main(){
     Employee1.Company = "TellZed";
     Employee1.Age = 23;
     Employee1.IntroduceYourself();
-
-
-
-
-
-
-
-
-
-
-
-
-
+    cout<<"Employee Name: "<<Employee1.Name<<endl;
     return 560;
 }
