@@ -14,5 +14,10 @@ int main(){
     cout<<&value<<endl; // prints the address of value
     cout<<*(&value)<<endl; // prints the value at the address of value, which is 24, using the dereferencing operator (*)
     cout<<pointer2<<endl; // prints the address of value
+  // pitter type should also match reference typw when used
+    int a = 13;
+    double b = 34.5;
 
+    int* pointer3 = &a; // pointer3 holds the address of a
+    double* pointer4 = &b; // pointer4 holds the address of b
 }
