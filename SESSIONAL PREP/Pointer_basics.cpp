@@ -2,9 +2,8 @@
 using namespace std;
 int main(){
     int x = 5;
-    int* pointer;
     int* pointer = nullptr;
-    int* pointer = &x; // pointer now holds the address of x
+    pointer = &x; // pointer now holds the address of x
     // more on pointers
     int value = 24;
     cout<<value<<endl; // prints 24
@@ -20,4 +19,23 @@ int main(){
 
     int* pointer3 = &a; // pointer3 holds the address of a
     double* pointer4 = &b; // pointer4 holds the address of b
+    cout<<pointer3<<endl;
+    cout<<*pointer3<<endl;
+    // assignmet of pointers and how they are used
+
+    int val = 56;
+    int* pointer5 = &val;
+    cout<<val;
+    cout<<*pointer5<<endl; // prints the value at the address of pointer5, which is 56
+
+    int val1 = 67;
+    pointer5 = &val;
+    cout<<val1<<endl;
+    cout<<*pointer5<<endl;
+
+    // Now let’s look at how we can also use a pointer to change the value being pointed at:
+
+
+    return 56;
+
 }
