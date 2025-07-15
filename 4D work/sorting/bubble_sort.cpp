@@ -16,6 +16,23 @@ for (int i = 0; i < length ; i++) {
         }
     }
 }
+// another example of buble sort
+int wazingwa[] = {5, 1, 4, 2, 8};
+int length1 = 5;
+
+for (int i = 0; i < length1; i++) {
+    for (int j = 0; j < length1 -1; j++ ) {
+        if (wazingwa[j] > wazingwa[j +1]) {
+            // perform swap
+            int temp = wazingwa[j];
+            wazingwa[j] = wazingwa [j+1];
+            wazingwa[j + 1] = temp; 
+        }
+    }
+}
+ for (int i = 0; i < length1; i++) {
+    cout << wazingwa[i] << " "<<endl;
+ }
 
  return 6;
 }
