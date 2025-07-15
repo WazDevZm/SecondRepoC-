@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wazi - ESG Impact Modeling Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Add Bootstrap Icons CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sankey-chart@1.0.0/dist/sankey-chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --light-text: #ecf0f1;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark-text);
+            background-color: var(--light-bg);
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--light-text);
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-primary:hover {jhl,@:@
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        .welcome-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 60px 0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-content {
+            padding: 20px;
+            background-color: white;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background-color: white;
+            border-color: #dee2e6 #dee2e6 white;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--dark-text);
+        }
+        
+        .impact-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .impact-label {
+            font-size: 1rem;
+            color: var(--dark-text);
+        }
+        
+        .sankey-container {
+            width: 100%;
+            height: 500px;
+            background-color: white;
+        }
+        
+        .table-responsive {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .dashboard-card {
+            transition: transform 0.3s;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .dashboard-icon {
+            font-size: 2rem;
+            color: var(--secondary-color);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        #loadingIndicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="hidden">
+        <div class="spinner-border text-light spinner" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="#">Wazi ESG Platform</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" title="Toggle navigation" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" id="navHome">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="navModel">Model</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="navResults">Results</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="navAbout">About</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> User
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a></li>
+                            <li><a class="dropdown-item" href="#">Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container" id="mainContent">
+        <!-- Welcome Section -->
+        <div id="welcomeSection">
+            <div class="welcome-section text-center">
+                <h1 class="display-4">Welcome to Wazi ESG Platform</h1>
+                <p class="lead">Quantify and optimize the economic impact of your ESG investments</p>
+                <button class="btn btn-light btn-lg mt-3" id="getStartedBtn">Get Started</button>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card dashboard-card h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-graph-up-arrow dashboard-icon"></i>
+                            <h5 class="card-title mt-2">Impact Analysis</h5>
+                            <p class="card-text">Measure the ripple effects of your ESG investments across the local economy.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card dashboard-card h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-cash-stack dashboard-icon"></i>
+                            <h5 class="card-title mt-2">Scenario Planning</h5>
+                            <p class="card-text">Test different investment strategies and compare their outcomes.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card dashboard-card h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-file-earmark-bar-graph dashboard-icon"></i>
+                            <h5 class="card-title mt-2">Reporting</h5>
+                            <p class="card-text">Generate professional reports for stakeholders and decision-makers.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>How It Works</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6>1. Define Your Investment</h6>
+                            <p>Specify the amount and sectors for your ESG investment.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>2. Run the Model</h6>
+                            <p>Our SAM-based engine calculates the economic impacts.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>3. Analyze Results</h6>
+                            <p>View detailed outputs, visualizations, and download reports.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Section -->
+        <div id="modelSection" class="hidden">
+            <h2 class="section-title">ESG Impact Model</h2>
+            
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="modelTabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="input-tab" data-bs-toggle="tab" href="#inputTab">Input Parameters</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="sam-tab" data-bs-toggle="tab" href="#samTab">SAM Data</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="scenarios-tab" data-bs-toggle="tab" href="#scenariosTab">Scenarios</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="tab-content" id="modelTabsContent">
+                    <div class="tab-pane fade show active" id="inputTab">
+                        <form id="esgInputForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="investmentAmount" class="form-label">Investment Amount ($)</label>
+                                        <input type="number" class="form-control" id="investmentAmount" min="0" step="1000" value="5000000">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="sectorSelection" class="form-label">Target Sector</label>
+                                        <select class="form-select" id="sectorSelection">
+                                            <option value="health">Health</option>
+                                            <option value="education">Education</option>
+                                            <option value="agriculture">Agriculture</option>
+                                            <option value="energy">Energy</option>
+                                            <option value="environment">Environment</option>
+                                            <option value="construction">Construction</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="geographicTarget" class="form-label">Geographic Target</label>
+                                        <select class="form-select" id="geographicTarget">
+                                            <option value="district">District Level</option>
+                                            <option value="community">Community Level</option>
+                                            <option value="regional">Regional Level</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="timePeriod" class="form-label">Time Period (years)</label>
+                                        <input type="number" class="form-control" id="timePeriod" min="1" max="10" value="5">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="scenarioDescription" class="form-label">Scenario Description</label>
+                                <textarea class="form-control" id="scenarioDescription" rows="2"></textarea>
+                            </div>
+                            <button type="button" class="btn btn-primary" id="runModelBtn">Run Model</button>
+                            <button type="button" class="btn btn-outline-secondary" id="saveScenarioBtn">Save Scenario</button>
+                        </form>
+                    </div>
+                    <div class="tab-pane fade" id="samTab">
+                        <div class="mb-3">
+                            <button class="btn btn-sm btn-outline-primary" id="viewFullSamBtn">View Full SAM</button>
+                            <button class="btn btn-sm btn-outline-secondary" id="viewAMatrixBtn">View A-Matrix</button>
+                            <button class="btn btn-sm btn-outline-success" id="viewLeontiefBtn">View Leontief Inverse</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="samTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Sector</th>
+                                        <th>Mining</th>
+                                        <th>Agriculture</th>
+                                        <th>Manufacturing</th>
+                                        <th>Construction</th>
+                                        <th>Health</th>
+                                        <th>Education</th>
+                                        <th>Energy</th>
+                                        <th>Environment</th>
+                                        <th>Households</th>
+                                        <th>Government</th>
+                                        <th>Capital</th>
+                                        <th>Exports</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="samTableBody">
+                                    <!-- SAM data will be populated here by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="scenariosTab">
+                        <div class="mb-3">
+                            <button class="btn btn-sm btn-primary" id="addScenarioBtn">Add New Scenario</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="scenariosTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Scenario</th>
+                                        <th>Investment</th>
+                                        <th>Sector</th>
+                                        <th>Output Δ</th>
+                                        <th>Jobs Δ</th>
+                                        <th>Income Δ</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scenariosTableBody">
+                                    <!-- Scenario data will be populated here by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="hidden">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="section-title">Model Results</h2>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary" id="exportPdfBtn">Export PDF</button>
+                    <button class="btn btn-sm btn-outline-success" id="exportExcelBtn">Export Excel</button>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="impact-number" id="totalOutputImpact">$0</div>
+                            <div class="impact-label">Total Output Impact</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="impact-number" id="totalJobsImpact">0</div>
+                            <div class="impact-label">Jobs Created</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="impact-number" id="totalIncomeImpact">$0</div>
+                            <div class="impact-label">Household Income</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="impact-number" id="totalValueAdded">$0</div>
+                            <div class="impact-label">Value Added</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="resultsTabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="sectoral-tab" data-bs-toggle="tab" href="#sectoralTab">Sectoral Impacts</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="income-tab" data-bs-toggle="tab" href="#incomeTab">Income & Value Added</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="flow-tab" data-bs-toggle="tab" href="#flowTab">Resource Flow</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="comparison-tab" data-bs-toggle="tab" href="#comparisonTab">Scenario Comparison</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="tab-content" id="resultsTabsContent">
+                    <div class="tab-pane fade show active" id="sectoralTab">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <canvas id="sectoralImpactChart"></canvas>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Sector</th>
+                                                <th>Output Δ</th>
+                                                <th>Jobs Δ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="sectoralImpactTable">
+                                            <!-- Sectoral impact data will be populated here by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="incomeTab">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <canvas id="incomeImpactChart"></canvas>
+                            </div>
+                            <div class="col-md-6">
+                                <canvas id="valueAddedChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Component</th>
+                                                <th>Amount ($)</th>
+                                                <th>% of Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="incomeImpactTable">
+                                            <!-- Income impact data will be populated here by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="flowTab">
+                        <div class="sankey-container" id="resourceFlowDiagram"></div>
+                    </div>
+                    <div class="tab-pane fade" id="comparisonTab">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <canvas id="scenarioComparisonChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Metric</th>
+                                                <th>Scenario 1</th>
+                                                <th>Scenario 2</th>
+                                                <th>Scenario 3</th>
+                                                <th>Difference</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="scenarioComparisonTable">
+                                            <!-- Scenario comparison data will be populated here by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recommendations</h5>
+                </div>
+                <div class="card-body">
+                    <div id="recommendationsContent">
+                        <p>Based on your ESG investment scenario, here are some recommendations:</p>
+                        <ul id="recommendationsList">
+                            <!-- Recommendations will be populated here by JavaScript -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <div id="aboutSection" class="hidden">
+            <h2 class="section-title">About Wazi ESG Platform</h2>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">What is Wazi?</h5>
+                    <p class="card-text">Wazi is an interactive web-based platform designed to help mining and energy companies quantify and optimize the economic impact of their Environmental, Social, and Governance (ESG) investments in local communities.</p>
+                    <p>The platform uses an Extended Social Accounting Matrix (ESG-SAM) model to track, quantify, and forecast the socioeconomic returns of ESG investments.</p>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Key Features</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Impact Allocation & Optimization</h6>
+                            <p>Identify the optimal placement of ESG donations in community sectors to generate the greatest economic ripple effect.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Data-Driven Scenario Planning</h6>
+                            <p>Simulate scenario-based projections showing how economies behave in response to different ESG investment strategies.</p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6>Realistic Forecasting</h6>
+                            <p>Make forward-looking forecasts of ESG investments to guide sustainable, high-impact ESG roadmaps.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Interactive Visualization</h6>
+                            <p>Explore results through dynamic charts, graphs, and Sankey diagrams showing resource flows.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5>Technical Details</h5>
+                </div>
+                <div class="card-body">
+                    <p>The platform is built on the following economic modeling techniques:</p>
+                    <ul>
+                        <li><strong>Social Accounting Matrix (SAM):</strong> A comprehensive, economy-wide data framework that captures transactions between all economic actors.</li>
+                        <li><strong>Input-Output Analysis:</strong> Traces how inputs from one industry are outputs for another, capturing interdependencies.</li>
+                        <li><strong>Leontief Inverse:</strong> Calculates total (direct + indirect) requirements needed to produce one unit of final demand.</li>
+                        <li><strong>Multiplier Effects:</strong> Measures how initial spending circulates through the economy, creating additional economic activity.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Login to Wazi Platform</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="loginEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="loginEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="loginPassword" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">Remember me</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="loginBtn">Login</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sample SAM data (would normally come from backend or Excel import)
+        const samData = {
+            sectors: ["Mining", "Agriculture", "Manufacturing", "Construction", "Health", "Education", "Energy", "Environment", "Households", "Government", "Capital", "Exports", "Total"],
+            transactions: [
+                [50, 10, 60, 40, 0, 5, 20, 10, 30, 15, 25, 50, 315],
+                [5, 30, 20, 0, 5, 2, 5, 3, 60, 10, 15, 40, 195],
+                [0, 15, 80, 30, 12, 10, 5, 8, 40, 20, 15, 30, 265],
+                [0, 0, 0, 50, 18, 15, 8, 12, 25, 10, 20, 0, 158],
+                [0, 5, 5, 6, 25, 10, 5, 3, 40, 30, 10, 0, 139],
+                [2, 3, 3, 4, 8, 30, 3, 5, 50, 20, 5, 0, 133],
+                [30, 5, 15, 12, 5, 5, 10, 7, 20, 10, 15, 10, 144],
+                [5, 2, 8, 6, 4, 6, 8, 15, 12, 5, 10, 0, 81],
+                [60, 80, 45, 35, 35, 40, 25, 20, 0, 0, 0, 0, 340],
+                [15, 10, 20, 10, 8, 5, 7, 3, 0, 0, 0, 0, 78],
+                [40, 30, 35, 25, 20, 15, 18, 12, 0, 0, 0, 0, 195],
+                [20, 15, 25, 12, 10, 8, 12, 5, 0, 0, 0, 0, 107],
+                [227, 205, 316, 230, 150, 151, 126, 103, 277, 120, 115, 130, 2150]
+            ],
+            aMatrix: [
+                [0.220, 0.049, 0.190, 0.174, 0.000, 0.033, 0.159, 0.097, 0.108, 0.125, 0.217, 0.385],
+                [0.022, 0.146, 0.063, 0.000, 0.033, 0.013, 0.040, 0.029, 0.217, 0.083, 0.130, 0.308],
+                [0.000, 0.073, 0.253, 0.130, 0.080, 0.066, 0.040, 0.078, 0.144, 0.167, 0.130, 0.221],
+                [0.000, 0.000, 0.000, 0.217, 0.120, 0.099, 0.063, 0.117, 0.090, 0.083, 0.174, 0.000],
+                [0.000, 0.024, 0.016, 0.026, 0.167, 0.066, 0.040, 0.029, 0.144, 0.250, 0.087, 0.000],
+                [0.009, 0.015, 0.009, 0.017, 0.053, 0.199, 0.024, 0.049, 0.181, 0.167, 0.043, 0.000],
+                [0.132, 0.024, 0.047, 0.052, 0.033, 0.033, 0.079, 0.068, 0.072, 0.083, 0.130, 0.077],
+                [0.022, 0.010, 0.025, 0.026, 0.027, 0.040, 0.063, 0.146, 0.043, 0.042, 0.087, 0.000],
+                [0.264, 0.390, 0.142, 0.152, 0.233, 0.265, 0.198, 0.194, 0.000, 0.000, 0.000, 0.000],
+                [0.066, 0.049, 0.063, 0.043, 0.053, 0.033, 0.056, 0.029, 0.000, 0.000, 0.000, 0.000],
+                [0.176, 0.146, 0.111, 0.109, 0.133, 0.099, 0.143, 0.117, 0.000, 0.000, 0.000, 0.000],
+                [0.088, 0.073, 0.079, 0.052, 0.067, 0.053, 0.095, 0.049, 0.000, 0.000, 0.000, 0.000]
+            ],
+            leontiefInverse: [
+                [1.655, 0.511, 0.670, 0.700, 0.455, 0.538, 0.607, 0.611, 0.683],
+                [0.321, 1.529, 0.373, 0.306, 0.360, 0.369, 0.339, 0.362, 0.606],
+                [0.319, 0.493, 1.644, 0.541, 0.501, 0.519, 0.393, 0.500, 0.644],
+                [0.219, 0.255, 0.205, 1.500, 0.417, 0.423, 0.309, 0.415, 0.421],
+                [0.216, 0.293, 0.226, 0.255, 1.437, 0.355, 0.264, 0.281, 0.445],
+                [0.262, 0.325, 0.251, 0.278, 0.345, 1.550, 0.281, 0.343, 0.525],
+                [0.371, 0.272, 0.294, 0.319, 0.273, 0.301, 1.320, 0.338, 0.374],
+                [0.153, 0.152, 0.157, 0.171, 0.171, 0.204, 0.202, 1.314, 0.221],
+                [0.864, 1.079, 0.796, 0.839, 0.909, 1.017, 0.833, 0.916, 1.933]
+            ]
+        };
+
+        // Sample scenarios data
+        const scenarios = [
+            { id: 1, name: "Agriculture Focus", sector: "Agriculture", investment: 5000000, output: 30270000, jobs: 1181, income: 32660000 },
+            { id: 2, name: "Health & Education", sector: "Health, Education", investment: 10000000, output: 62100000, jobs: 1555, income: 60100000 },
+            { id: 3, name: "Energy & Environment", sector: "Energy, Environment", investment: 10000000, output: 46330000, jobs: 983, income: 46950000 }
+        ];
+
+        // Sample results data
+        const sampleResults = {
+            totalOutput: 70050000,
+            totalJobs: 1989,
+            totalIncome: 68010000,
+            totalValueAdded: 27030000,
+            sectoralImpacts: [
+                { sector: "Agriculture", output: 30270000, jobs: 1181, income: 32660000 },
+                { sector: "Environment", output: 16580000, jobs: 322, income: 15190000 },
+                { sector: "Mining", output: 5610000, jobs: 148, income: 4850000 },
+                { sector: "Manufacturing", output: 4970000, jobs: 71, income: 3950000 },
+                { sector: "Health", output: 2870000, jobs: 67, income: 2610000 },
+                { sector: "Education", output: 3340000, jobs: 88, income: 3400000 },
+                { sector: "Energy", output: 3050000, jobs: 61, income: 2540000 },
+                { sector: "Construction", output: 3350000, jobs: 51, income: 2820000 }
+            ],
+            incomeComponents: [
+                { component: "Labor", amount: 15030000, percent: 55.6 },
+                { component: "Taxes", amount: 2480000, percent: 9.2 },
+                { component: "Capital", amount: 7270000, percent: 26.9 },
+                { component: "Household Income", amount: 2253000, percent: 8.3 }
+            ],
+            recommendations: [
+                "Consider increasing investment in Health and Education sectors which show strong multiplier effects",
+                "The Agriculture sector demonstrates high job creation potential per dollar invested",
+                "Environment investments show balanced impacts across output, jobs and income",
+                "Monitor Mining sector impacts which may require complementary workforce development"
+            ]
+        };
+
+        // Sample Sankey diagram data
+        const sankeyData = {
+            nodes: [
+                { name: "ESG Investment" },
+                { name: "Health Sector" },
+                { name: "Education Sector" },
+                { name: "Construction" },
+                { name: "Labor Income" },
+                { name: "Household Consumption" },
+                { name: "Local Retail" },
+                { name: "Agriculture" },
+                { name: "Tax Revenue" }
+            ],
+            links: [
+                { source: 0, target: 1, value: 40 },
+                { source: 0, target: 2, value: 35 },
+                { source: 0, target: 3, value: 25 },
+                { source: 1, target: 4, value: 25 },
+                { source: 2, target: 4, value: 20 },
+                { source: 3, target: 4, value: 15 },
+                { source: 4, target: 5, value: 45 },
+                { source: 5, target: 6, value: 20 },
+                { source: 5, target: 7, value: 15 },
+                { source: 1, target: 7, value: 5 },
+                { source: 2, target: 7, value: 5 },
+                { source: 3, target: 7, value: 5 }
+            ]
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements (now safe to select)
+            window.welcomeSection = document.getElementById('welcomeSection');
+            window.modelSection = document.getElementById('modelSection');
+            window.resultsSection = document.getElementById('resultsSection');
+            window.aboutSection = document.getElementById('aboutSection');
+            window.getStartedBtn = document.getElementById('getStartedBtn');
+            window.navHome = document.getElementById('navHome');
+            window.navModel = document.getElementById('navModel');
+            window.navResults = document.getElementById('navResults');
+            window.navAbout = document.getElementById('navAbout');
+            window.runModelBtn = document.getElementById('runModelBtn');
+            window.saveScenarioBtn = document.getElementById('saveScenarioBtn');
+            window.viewFullSamBtn = document.getElementById('viewFullSamBtn');
+            window.viewAMatrixBtn = document.getElementById('viewAMatrixBtn');
+            window.viewLeontiefBtn = document.getElementById('viewLeontiefBtn');
+            window.addScenarioBtn = document.getElementById('addScenarioBtn');
+            window.exportPdfBtn = document.getElementById('exportPdfBtn');
+            window.exportExcelBtn = document.getElementById('exportExcelBtn');
+            window.loadingIndicator = document.getElementById('loadingIndicator');
+
+            // Load SAM data into tables
+            populateSamTable();
+            populateScenariosTable();
+
+            // Initialize charts
+            initializeCharts();
+
+            // Set up event listeners
+            setupEventListeners();
+
+            // Hide loading indicator if visible (in case of errors)
+            window.loadingIndicator.classList.add('hidden');
+        });
+
+        function setupEventListeners() {
+            // Navigation
+            window.getStartedBtn.addEventListener('click', function() {
+                showSection('model');
+            });
+            
+            window.navHome.addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('home');
+            });
+            
+            window.navModel.addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('model');
+            });
+            
+            window.navResults.addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('results');
+            });
+            
+            window.navAbout.addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('about');
+            });
+            
+            // Model section buttons
+            window.runModelBtn.addEventListener('click', runModel);
+            window.saveScenarioBtn.addEventListener('click', saveScenario);
+            window.viewFullSamBtn.addEventListener('click', function() { populateSamTable('full'); });
+            window.viewAMatrixBtn.addEventListener('click', function() { populateSamTable('aMatrix'); });
+            window.viewLeontiefBtn.addEventListener('click', function() { populateSamTable('leontief'); });
+            window.addScenarioBtn.addEventListener('click', addScenario);
+            
+            // Results section buttons
+            window.exportPdfBtn.addEventListener('click', exportPdf);
+            window.exportExcelBtn.addEventListener('click', exportExcel);
+        }
+
+        function showSection(section) {
+            // Hide all sections
+            window.welcomeSection.classList.add('hidden');
+            window.modelSection.classList.add('hidden');
+            window.resultsSection.classList.add('hidden');
+            window.aboutSection.classList.add('hidden');
+            
+            // Update active nav link
+            window.navHome.classList.remove('active');
+            window.navModel.classList.remove('active');
+            window.navResults.classList.remove('active');
+            window.navAbout.classList.remove('active');
+            
+            // Show selected section
+            switch(section) {
+                case 'home':
+                    window.welcomeSection.classList.remove('hidden');
+                    window.navHome.classList.add('active');
+                    break;
+                case 'model':
+                    window.modelSection.classList.remove('hidden');
+                    window.navModel.classList.add('active');
+                    break;
+                case 'results':
+                    window.resultsSection.classList.remove('hidden');
+                    window.navResults.classList.add('active');
+                    updateResultsCharts();
+                    break;
+                case 'about':
+                    window.aboutSection.classList.remove('hidden');
+                    window.navAbout.classList.add('active');
+                    break;
+            }
+        }
+
+        function populateSamTable(type = 'full') {
+            const tableBody = document.getElementById('samTableBody');
+            tableBody.innerHTML = '';
+            
+            if (type === 'full') {
+                // Show full SAM
+                for (let i = 0; i < samData.sectors.length; i++) {
+                    const row = document.createElement('tr');
+                    
+                    // Sector name
+                    const sectorCell = document.createElement('td');
+                    sectorCell.textContent = samData.sectors[i];
+                    row.appendChild(sectorCell);
+                    
+                    // Transaction values
+                    for (let j = 0; j < samData.transactions[i].length; j++) {
+                        const cell = document.createElement('td');
+                        cell.textContent = samData.transactions[i][j];
+                        row.appendChild(cell);
+                    }
+                    
+                    tableBody.appendChild(row);
+                }
+            } else if (type === 'aMatrix') {
+                // Show A-Matrix
+                for (let i = 0; i < samData.sectors.length - 1; i++) { // Exclude Total row
+                    const row = document.createElement('tr');
+                    
+                    // Sector name
+                    const sectorCell = document.createElement('td');
+                    sectorCell.textContent = samData.sectors[i];
+                    row.appendChild(sectorCell);
+                    
+                    // A-Matrix values
+                    for (let j = 0; j < samData.aMatrix[i].length; j++) {
+                        const cell = document.createElement('td');
+                        cell.textContent = samData.aMatrix[i][j].toFixed(3);
+                        row.appendChild(cell);
+                    }
+                    
+                    tableBody.appendChild(row);
+                }
+            } else if (type === 'leontief') {
+                // Show Leontief Inverse
+                for (let i = 0; i < samData.leontiefInverse.length; i++) {
+                    const row = document.createElement('tr');
+
+                    // Sector name (use only first N sectors)
+                    const sectorCell = document.createElement('td');
+                    sectorCell.textContent = samData.sectors[i];
+                    row.appendChild(sectorCell);
+
+                    // Leontief Inverse values
+                    for (let j = 0; j < samData.leontiefInverse[i].length; j++) {
+                        const cell = document.createElement('td');
+                        cell.textContent = samData.leontiefInverse[i][j].toFixed(3);
+                        row.appendChild(cell);
+                    }
+
+                    tableBody.appendChild(row);
+                }
+            }
+        }
+
+        function populateScenariosTable() {
+            const tableBody = document.getElementById('scenariosTableBody');
+            tableBody.innerHTML = '';
+            
+            scenarios.forEach(scenario => {
+                const row = document.createElement('tr');
+                
+                // Scenario name
+                const nameCell = document.createElement('td');
+                nameCell.textContent = scenario.name;
+                row.appendChild(nameCell);
+                
+                // Investment
+                const investmentCell = document.createElement('td');
+                investmentCell.textContent = `$${(scenario.investment / 1000000).toFixed(1)}M`;
+                row.appendChild(investmentCell);
+                
+                // Sector
+                const sectorCell = document.createElement('td');
+                sectorCell.textContent = scenario.sector;
+                row.appendChild(sectorCell);
+                
+                // Output Δ
+                const outputCell = document.createElement('td');
+                outputCell.textContent = `$${(scenario.output / 1000000).toFixed(1)}M`;
+                row.appendChild(outputCell);
+                
+                // Jobs Δ
+                const jobsCell = document.createElement('td');
+                jobsCell.textContent = scenario.jobs;
+                row.appendChild(jobsCell);
+                
+                // Income Δ
+                const incomeCell = document.createElement('td');
+                incomeCell.textContent = `$${(scenario.income / 1000000).toFixed(1)}M`;
+                row.appendChild(incomeCell);
+                
+                // Actions
+                const actionsCell = document.createElement('td');
+                const runBtn = document.createElement('button');
+                runBtn.className = 'btn btn-sm btn-outline-primary me-1';
+                runBtn.textContent = 'Run';
+                runBtn.addEventListener('click', function() {
+                    loadScenario(scenario.id);
+                });
+                actionsCell.appendChild(runBtn);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-sm btn-outline-danger';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.addEventListener('click', function() {
+                    deleteScenario(scenario.id);
+                });
+                actionsCell.appendChild(deleteBtn);
+                
+                row.appendChild(actionsCell);
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        function initializeCharts() {
+            // Initialize all Chart.js charts with empty data
+            // They will be updated when results are loaded
+            
+            // Sectoral Impact Chart
+            const sectoralCtx = document.getElementById('sectoralImpactChart').getContext('2d');
+            window.sectoralChart = new Chart(sectoralCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Output Impact ($)',
+                            backgroundColor: '#3498db',
+                            data: []
+                        },
+                        {
+                            label: 'Jobs Created',
+                            backgroundColor: '#2ecc71',
+                            data: []
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            stacked: false
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Income Impact Chart
+            const incomeCtx = document.getElementById('incomeImpactChart').getContext('2d');
+            window.incomeChart = new Chart(incomeCtx, {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#3498db',
+                            '#2ecc71',
+                            '#e74c3c',
+                            '#f39c12'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Income Composition'
+                        }
+                    }
+                }
+            });
+            
+            // Value Added Chart
+            const valueAddedCtx = document.getElementById('valueAddedChart').getContext('2d');
+            window.valueAddedChart = new Chart(valueAddedCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#3498db',
+                            '#2ecc71',
+                            '#e74c3c',
+                            '#f39c12'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Value Added Composition'
+                        }
+                    }
+                }
+            });
+            
+            // Scenario Comparison Chart
+            const comparisonCtx = document.getElementById('scenarioComparisonChart').getContext('2d');
+            window.comparisonChart = new Chart(comparisonCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Output Impact ($M)',
+                            backgroundColor: '#3498db',
+                            data: []
+                        },
+                        {
+                            label: 'Jobs Created',
+                            backgroundColor: '#2ecc71',
+                            data: []
+                        },
+                        {
+                            label: 'Income Impact ($M)',
+                            backgroundColor: '#e74c3c',
+                            data: []
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            stacked: false
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Initialize Sankey diagram
+            const sankeyContainer = document.getElementById('resourceFlowDiagram');
+            window.sankeyChart = new SankeyChart({
+                container: sankeyContainer,
+                data: {
+                    nodes: [],
+                    links: []
+                },
+                nodeWidth: 20,
+                nodePadding: 10,
+                linkColor: 'source',
+                nodeLabel: {
+                    padding: 5,
+                    fontSize: 12
+                }
+            });
+        }
+
+        function updateResultsCharts() {
+            // Update all charts with the sample results data
+            
+            // Update impact numbers
+            document.getElementById('totalOutputImpact').textContent = `$${(sampleResults.totalOutput / 1000000).toFixed(1)}M`;
+            document.getElementById('totalJobsImpact').textContent = sampleResults.totalJobs.toLocaleString();
+            document.getElementById('totalIncomeImpact').textContent = `$${(sampleResults.totalIncome / 1000000).toFixed(1)}M`;
+            document.getElementById('totalValueAdded').textContent = `$${(sampleResults.totalValueAdded / 1000000).toFixed(1)}M`;
+            
+            // Update sectoral impact table
+            const sectoralTableBody = document.getElementById('sectoralImpactTable');
+            sectoralTableBody.innerHTML = '';
+            
+            sampleResults.sectoralImpacts.forEach(sector => {
+                const row = document.createElement('tr');
+                
+                const sectorCell = document.createElement('td');
+                sectorCell.textContent = sector.sector;
+                row.appendChild(sectorCell);
+                
+                const outputCell = document.createElement('td');
+                outputCell.textContent = `$${(sector.output / 1000000).toFixed(1)}M`;
+                row.appendChild(outputCell);
+                
+                const jobsCell = document.createElement('td');
+                jobsCell.textContent = sector.jobs;
+                row.appendChild(jobsCell);
+                
+                sectoralTableBody.appendChild(row);
+            });
+            
+            // Update sectoral impact chart
+            window.sectoralChart.data.labels = sampleResults.sectoralImpacts.map(s => s.sector);
+            window.sectoralChart.data.datasets[0].data = sampleResults.sectoralImpacts.map(s => s.output / 1000000);
+            window.sectoralChart.data.datasets[1].data = sampleResults.sectoralImpacts.map(s => s.jobs);
+            window.sectoralChart.update();
+            
+            // Update income impact chart and table
+            const incomeTableBody = document.getElementById('incomeImpactTable');
+            incomeTableBody.innerHTML = '';
+            
+            sampleResults.incomeComponents.forEach(comp => {
+                const row = document.createElement('tr');
+                
+                const nameCell = document.createElement('td');
+                nameCell.textContent = comp.component;
+                row.appendChild(nameCell);
+                
+                const amountCell = document.createElement('td');
+                amountCell.textContent = `$${(comp.amount / 1000000).toFixed(1)}M`;
+                row.appendChild(amountCell);
+                
+                const percentCell = document.createElement('td');
+                percentCell.textContent = `${comp.percent}%`;
+                row.appendChild(percentCell);
+                
+                incomeTableBody.appendChild(row);
+            });
+            
+            window.incomeChart.data.labels = sampleResults.incomeComponents.map(c => c.component);
+            window.incomeChart.data.datasets[0].data = sampleResults.incomeComponents.map(c => c.amount / 1000000);
+            window.incomeChart.update();
+            
+            // Update value added chart (using same data as income for demo)
+            window.valueAddedChart.data.labels = sampleResults.incomeComponents.map(c => c.component);
+            window.valueAddedChart.data.datasets[0].data = sampleResults.incomeComponents.map(c => c.amount / 1000000);
+            window.valueAddedChart.update();
+            
+            // Update Sankey diagram
+            window.sankeyChart.update(sankeyData);
+            
+            // Update scenario comparison chart (using scenarios data)
+            window.comparisonChart.data.labels = scenarios.map(s => s.name);
+            window.comparisonChart.data.datasets[0].data = scenarios.map(s => s.output / 1000000);
+            window.comparisonChart.data.datasets[1].data = scenarios.map(s => s.jobs);
+            window.comparisonChart.data.datasets[2].data = scenarios.map(s => s.income / 1000000);
+            window.comparisonChart.update();
+            
+            // Update scenario comparison table
+            const comparisonTableBody = document.getElementById('scenarioComparisonTable');
+            comparisonTableBody.innerHTML = '';
+            
+            const metrics = [
+                { name: "Output Impact ($M)", getValue: s => Number((s.output / 1000000).toFixed(1)) },
+                { name: "Jobs Created", getValue: s => Number(s.jobs) },
+                { name: "Income Impact ($M)", getValue: s => Number((s.income / 1000000).toFixed(1)) }
+            ];
+            
+            metrics.forEach(metric => {
+                const row = document.createElement('tr');
+                
+                const nameCell = document.createElement('td');
+                nameCell.textContent = metric.name;
+                row.appendChild(nameCell);
+                
+                // Scenario values
+                scenarios.forEach(scenario => {
+                    const valueCell = document.createElement('td');
+                    valueCell.textContent = metric.getValue(scenario);
+                    row.appendChild(valueCell);
+                });
+                
+                // Difference (first minus second, if at least 2 scenarios)
+                const diffCell = document.createElement('td');
+                if (scenarios.length > 1) {
+                    const diff = metric.getValue(scenarios[0]) - metric.getValue(scenarios[1]);
+                    diffCell.textContent = diff.toFixed(1);
+                } else {
+                    diffCell.textContent = 'N/A';
+                }
+                row.appendChild(diffCell);
+                
+                comparisonTableBody.appendChild(row);
+            });
+            
+            // Update recommendations
+            const recommendationsList = document.getElementById('recommendationsList');
+            recommendationsList.innerHTML = '';
+            
+            sampleResults.recommendations.forEach(rec => {
+                const li = document.createElement('li');
+                li.textContent = rec;
+                recommendationsList.appendChild(li);
+            });
+        }
+
+        function runModel() {
+            showLoading(true);
+            
+            // Simulate model running (in a real app, this would call a backend API)
+            setTimeout(() => {
+                // For demo purposes, we'll just load the sample results
+                updateResultsCharts();
+                showSection('results');
+                showLoading(false);
+                
+                // Show success message
+                alert('Model run completed successfully!');
+            }, 1500);
+        }
+
+        function saveScenario() {
+            const investmentAmount = document.getElementById('investmentAmount').value;
+            const sectorSelection = document.getElementById('sectorSelection').value;
+            const scenarioDescription = document.getElementById('scenarioDescription').value;
+            
+            if (!investmentAmount || !sectorSelection) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // In a real app, this would save to a database
+            const newScenario = {
+                id: scenarios.length + 1,
+                name: scenarioDescription || `Scenario ${scenarios.length + 1}`,
+                sector: document.getElementById('sectorSelection').options[document.getElementById('sectorSelection').selectedIndex].text,
+                investment: parseInt(investmentAmount),
+                // For demo, we'll generate some sample output numbers
+                output: Math.round(investmentAmount * (5 + Math.random() * 3)),
+                jobs: Math.round(investmentAmount / 5000 * (0.8 + Math.random() * 0.4)),
+                income: Math.round(investmentAmount * (4 + Math.random() * 2))
+            };
+            
+            scenarios.push(newScenario);
+            populateScenariosTable();
+            
+            alert('Scenario saved successfully!');
+        }
+
+        function loadScenario(scenarioId) {
+            const scenario = scenarios.find(s => s.id === scenarioId);
+            if (!scenario) return;
+
+            // Set the form values
+            document.getElementById('investmentAmount').value = scenario.investment;
+
+            // Find the option that matches the scenario sector (handles multiple sectors)
+            const sectorOptions = document.getElementById('sectorSelection').options;
+            let found = false;
+            for (let i = 0; i < sectorOptions.length; i++) {
+                if (scenario.sector.includes(sectorOptions[i].text)) {
+                    document.getElementById('sectorSelection').selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) document.getElementById('sectorSelection').selectedIndex = 0;
+
+            document.getElementById('scenarioDescription').value = scenario.name;
+
+            // Switch to input tab
+            document.getElementById('input-tab').click();
+        }
+
+        function deleteScenario(scenarioId) {
+            if (confirm('Are you sure you want to delete this scenario?')) {
+                const index = scenarios.findIndex(s => s.id === scenarioId);
+                if (index !== -1) {
+                    scenarios.splice(index, 1);
+                    populateScenariosTable();
+                }
+            }
+        }
+
+        function addScenario() {
+            // Clear the form
+            document.getElementById('investmentAmount').value = '5000000';
+            document.getElementById('sectorSelection').selectedIndex = 0;
+            document.getElementById('scenarioDescription').value = '';
+            
+            // Switch to input tab
+            document.getElementById('input-tab').click();
+        }
+
+        function exportPdf() {
+            showLoading(true);
+            
+            // Simulate PDF generation (in a real app, this would call a backend service)
+            setTimeout(() => {
+                showLoading(false);
+                alert('PDF report generated successfully! Download would start in a real application.');
+            }, 1000);
+        }
+
+        function exportExcel() {
+            showLoading(true);
+            
+            // Create a workbook
+            const wb = XLSX.utils.book_new();
+            
+            // Add SAM data sheet
+            const samWs = XLSX.utils.aoa_to_sheet([
+                ['Social Accounting Matrix'],
+                ...samData.sectors.map((sector, i) => [sector, ...samData.transactions[i]])
+            ]);
+            XLSX.utils.book_append_sheet(wb, samWs, "SAM");
+            
+            // Add results sheet
+            const resultsWs = XLSX.utils.aoa_to_sheet([
+                ['ESG Impact Model Results'],
+                ['Total Output Impact', `$${(sampleResults.totalOutput / 1000000).toFixed(1)}M`],
+                ['Total Jobs Created', sampleResults.totalJobs],
+                ['Total Income Impact', `$${(sampleResults.totalIncome / 1000000).toFixed(1)}M`],
+                [''],
+                ['Sectoral Impacts'],
+                ['Sector', 'Output Impact ($M)', 'Jobs Created', 'Income Impact ($M)'],
+                ...sampleResults.sectoralImpacts.map(s => [
+                    s.sector, 
+                    (s.output / 1000000).toFixed(1), 
+                    s.jobs, 
+                    (s.income / 1000000).toFixed(1)
+                ])
+            ]);
+            XLSX.utils.book_append_sheet(wb, resultsWs, "Results");
+            
+            // Export the workbook
+            XLSX.writeFile(wb, 'ESG_Impact_Results.xlsx');
+            showLoading(false);
+        }
+
+        function showLoading(show) {
+            // Use window-scoped variable
+            if (show) {
+                window.loadingIndicator.classList.remove('hidden');
+            } else {
+                window.loadingIndicator.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
