@@ -17,6 +17,7 @@ void preorder(Node* root) {
     cout << root->data << " ";
     preorder(root->left);
     preorder(root->right);
+    ///BLINF roup asiting the tech nohoifrin the
 }
 
 // Inorder traversal (Left, Root, Right)
@@ -86,3 +87,4 @@ int main() {
 
     return 0;
 }
+// reashehc ncotio of AI gen music??? is this real?
