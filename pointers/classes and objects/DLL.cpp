@@ -22,6 +22,16 @@ int main () {
     node->next = nullptr; // Initialize next pointer to null
     node->previous = nullptr; // Initialize previous pointer to null
 
-
+    node = new Node; // Create a new node
+    node->value = 20; // Example value
+    node->next = nullptr; // Initialize next pointer to null
+    node->previous = head; // Set previous pointer to the current head
+    if (head == nullptr) {
+        head = node; // If head is null, set head to the new node
+        tail = node; // Set tail to the new node as well
+    } else {
+        tail->next = node; // Link the current tail's next to the new node
+        tail = node; // Update tail to the new node
+    }
 return 0; // Return 0 to indicate successful execution
 }
