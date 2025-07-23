@@ -20,6 +20,10 @@ void BubbleSort (int array[], int size){
     } while (swap)
 }
 
+// implementing selctions sorting
+
+void 
+
 int main (){
 
 
